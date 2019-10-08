@@ -34,8 +34,9 @@ def config_wait_time(config):
     # Validate and return the wait time from the config data
     return config['wait_time'] if 'wait_time' in config else DEFAULT_WAIT_TIME
 
-
-@pytest.fixture
+#TODO: check for session
+# session - same browser for all tests(do not reopen it)
+@pytest.fixture(scope='session')
 def browser(config_browser, config_wait_time):
     # Initialize WebDriver
     if config_browser == 'chrome':
