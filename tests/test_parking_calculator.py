@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # vim: set encoding=utf-8
 import time
+from datetime import datetime
+from datetime import timedelta
 
 import pytest
 
@@ -9,55 +11,49 @@ from support.parking_cost import ParkingCost
 from support.form_data import FormData
 
 
-# TODO: extract duration and count time for assertion
 @pytest.mark.parametrize(
     "form_data",
     [
-        FormData('Valet Parking', '2019-10-06', '00:00', '2019-10-07', '5:00', 0),
+        FormData('Short-Term Parking', '2019-10-06', '00:00', '2019-10-07', '00:00', 0),
+        FormData('Short-Term Parking', '2019-10-06', '00:00', '2019-10-07', '05:00', 100),
+        FormData('Short-Term Parking', '2019-10-06', '00:00', '2019-10-07', '06:00', 5000),
     ],
 )
-def test_calculate_1_and_half_days_parking(browser, form_data: FormData):
-    park_cost = ParkingCost()
-    park_cost.calculate_duration(form_data)
+def test_short_term_parking(browser, form_data: FormData):
     calc_page = CalculatorPage(browser)
     calc_page.open()
     calc_page.fill_calculator(form_data)
     calc_page.calculate_button().click()
-    assert "30.00" in calc_page.final_cost()
-    assert "1 Days, 5 Hours, 0 Minutes" in calc_page.final_cost()
+
+    if form_data.delay > 0:
+        assert "0" in calc_page.final_cost()
+        time.sleep(form_data.delay/1000)
+
+    parking_cost = ParkingCost()
+    assert parking_cost.short_term_parking_cost(form_data) in calc_page.final_cost()
+    # Todo: count duration and check for it
+    # assert "1 Days, 0 Hours, 0 Minutes" in calc_page.final_cost()
 
 
-@pytest.mark.skip
-def test_simple_calculate_parking(browser):
+@pytest.mark.parametrize(
+    "form_data",
+    [
+        FormData('Valet Parking', '2019-10-06', '00:00', '2019-10-07', '00:00', 0),
+        FormData('Valet Parking', '2019-10-06', '00:00', '2019-10-07', '05:00', 100),
+        FormData('Valet Parking', '2019-10-06', '00:00', '2019-10-07', '06:00', 5000),
+    ],
+)
+def test_valet_parking(browser, form_data: FormData):
     calc_page = CalculatorPage(browser)
     calc_page.open()
-    calc_page.select_lot('Valet Parking')
-    calc_page.fill_start_date('2019-10-06')
-    calc_page.fill_end_date('2019-10-07')
-    calc_page.delay_time_radio_button(0).click()
+    calc_page.fill_calculator(form_data)
     calc_page.calculate_button().click()
+
+    if form_data.delay > 0:
+        assert "0" in calc_page.final_cost()
+        time.sleep(form_data.delay/1000)
+
     parking_cost = ParkingCost()
-
-    assert parking_cost.valet_parking_cost() in calc_page.final_cost()
-    assert "1 Days, 0 Hours, 0 Minutes" in calc_page.final_cost()
-
-
-@pytest.mark.skip
-def test_delay_calculate_parking(browser):
-    calc_page = CalculatorPage(browser)
-    calc_page.open()
-    calc_page.select_lot('Valet Parking')
-    calc_page.fill_start_date('2019-10-06')
-    calc_page.fill_end_date('2019-10-07')
-    delay_time = 5000
-    calc_page.delay_time_radio_button(delay_time).click()
-    calc_page.calculate_button().click()
-    parking_cost = ParkingCost()
-
-    assert "0" in calc_page.final_cost()
-    assert "" in calc_page.final_cost()
-
-    time.sleep(delay_time/1000)
-    assert parking_cost.valet_parking_cost() in calc_page.final_cost()
-    assert "1 Days, 0 Hours, 0 Minutes" in calc_page.final_cost()
-
+    assert parking_cost.valet_parking_cost(form_data) in calc_page.final_cost()
+    # Todo: count duration and check for it
+    # assert "1 Days, 0 Hours, 0 Minutes" in calc_page.final_cost()
