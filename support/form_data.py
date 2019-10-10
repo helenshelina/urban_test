@@ -3,7 +3,15 @@
 
 
 class FormData:
-    def __init__(self, lot: str, start_d: str, start_t: str, finish_d: str, finish_t: str, delay: int):
+    def __init__(
+        self,
+        lot: str,
+        start_d: str,
+        start_t: str,
+        finish_d: str,
+        finish_t: str,
+        delay: int,
+    ):
         self.__lot = lot
         self.__start_d = start_d
         self.__start_t = start_t
@@ -34,4 +42,3 @@ class FormData:
     @property
     def delay(self) -> int:
         return self.__delay
-

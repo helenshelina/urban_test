@@ -2,16 +2,17 @@
 # vim: set encoding=utf-8
 
 import json
+
 import pytest
+from selenium.webdriver import Chrome
+from selenium.webdriver import Firefox
 
-from selenium.webdriver import Chrome, Firefox
-
-CONFIG_PATH = 'tests/config.json'
+CONFIG_PATH = "tests/config.json"
 DEFAULT_WAIT_TIME = 10
-SUPPORTED_BROWSERS = ['chrome', 'firefox']
+SUPPORTED_BROWSERS = ["chrome", "firefox"]
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def config():
     # Read the JSON config file and returns it as a parsed dict
     with open(CONFIG_PATH) as config_file:
@@ -19,29 +20,30 @@ def config():
     return data
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def config_browser(config):
     # Validate and return the browser choice from the config data
-    if 'browser' not in config:
+    if "browser" not in config:
         raise Exception('The config file does not contain "browser"')
-    elif config['browser'] not in SUPPORTED_BROWSERS:
+    elif config["browser"] not in SUPPORTED_BROWSERS:
         raise Exception(f'"{config["browser"]}" is not a supported browser')
-    return config['browser']
+    return config["browser"]
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def config_wait_time(config):
     # Validate and return the wait time from the config data
-    return config['wait_time'] if 'wait_time' in config else DEFAULT_WAIT_TIME
+    return config["wait_time"] if "wait_time" in config else DEFAULT_WAIT_TIME
 
-#TODO: check for session
+
+# TODO: check for session
 # session - same browser for all tests(do not reopen it)
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def browser(config_browser, config_wait_time):
     # Initialize WebDriver
-    if config_browser == 'chrome':
+    if config_browser == "chrome":
         driver = Chrome()
-    elif config_browser == 'firefox':
+    elif config_browser == "firefox":
         driver = Firefox()
     else:
         raise Exception(f'"{config_browser}" is not a supported browser')
@@ -54,3 +56,19 @@ def browser(config_browser, config_wait_time):
 
     # For cleanup, quit the driver
     driver.quit()
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    pytest_html = item.config.pluginmanager.getplugin("html")
+    outcome = yield
+    report = outcome.get_result()
+    extra = getattr(report, "extra", [])
+    if report.when == "call":
+        # always add url to report
+        extra.append(pytest_html.extras.url("http://www.example.com/"))
+        xfail = hasattr(report, "wasxfail")
+        if (report.skipped and xfail) or (report.failed and not xfail):
+            # only add additional html on failure
+            extra.append(pytest_html.extras.html("<div>Additional HTML</div>"))
+        report.extra = extra

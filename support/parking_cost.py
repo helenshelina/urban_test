@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 # vim: set encoding=utf-8
+
+
 from datetime import datetime
 from datetime import timedelta
 
@@ -9,8 +11,12 @@ from support.form_data import FormData
 class ParkingCost:
     @staticmethod
     def calculate_duration(form_data: FormData):
-        start_time = datetime.strptime(form_data.start_d + " " + form_data.start_t, '%Y-%m-%d %H:%M')
-        end_time = datetime.strptime(form_data.finish_d + " " + form_data.finish_t, '%Y-%m-%d %H:%M')
+        start_time = datetime.strptime(
+            form_data.start_d + " " + form_data.start_t, "%Y-%m-%d %H:%M"
+        )
+        end_time = datetime.strptime(
+            form_data.finish_d + " " + form_data.finish_t, "%Y-%m-%d %H:%M"
+        )
         duration = end_time - start_time
         return duration
 
