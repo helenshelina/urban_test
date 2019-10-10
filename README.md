@@ -35,7 +35,15 @@ VSS requires only selecting auto-detected interpreter, so first run `pipenv sync
 
   * `pipenv run black` - reformat all Python code using `black`
   
-  
+
+### Run 
+`pipenv run pytest`
+or (in my case) 
+`PYTHONPATH=. pipenv run pytest`
+or (for having nice reports)
+`PYTHONPATH=. pipenv run pytest --html=report.html -v`
+or using `run` button in IDE
+
 ## Project directory structure
 
 ### `pages`
